@@ -1,3 +1,9 @@
+# Simple Spreadsheet
+
+This is a command line spreadsheet evaluator that uses postfix notation.  It was originally a homework assignment for a company interview, and I think it is a cute little problem, so I am posting it online with a breakdown of the code.  Cells accept postfix notation, so instead of writing 2 + 2, you should write 2 2 +.
+
+Cells can be referenced in standard spreadsheet form, using a comination of a letter and a number.  For example, b7 would be interpreted as column 2, row 7.  In this simple implementation, columns higher than "z" (or 26) cannot be referenced.
+
 Joshua Kelly
 inst.zombie@gmail.com
 (303) 974-8156
