@@ -114,9 +114,9 @@ res = re.match(scanner, input)
 
 ## Evaluating the spreadsheet
 
-Internally the program operates recusively.  A method in Sheet called evalCell does the actual evaluation of a cell.  If it encounters a cell reference, like b2, it will recursively evaluate cell b2.  Cells are marked with a cell state.  The reason is if evalCell encounters a cell that has not finished calculating its value, it means a circular definition exists.  This results in an error.  There is a recursion limit in python, and the code detects any attempt exceed the recursion limit, returning an #ERR value in the cell.
+Internally the program operates recusively.  A method in Sheet called evalCell does the actual evaluation of a cell.  If it encounters a cell reference, like b2, it will recursively evaluate cell b2.  Cells are marked with a cell state.  The reason is if evalCell encounters a cell that has not finished calculating its value, it means a circular definition exists.  This results in an error.  
 
-For example, the input:
+For example, an input with a loop:
 
 input.csv:
 
@@ -128,9 +128,9 @@ will result in
     #ERR, #ERR
     2.0, 1.0
 
-Cells also record their final numeric value, so if a cell is referenced multiple times it does not need to recompute the result.
+Cells also record their final numeric value, so if a cell is referenced multiple times it does not need to recompute the result. There is a recursion limit in python, and the code detects any attempt exceed the recursion limit, returning an #ERR value in the cell.
 
-Another way to solve this is a topological sort, to determine the order of cell calculation.  However I chose recursive because of the simplicity.  The sort would mean when a CELL token is encountered, its value can directly be substitued in to the evaluation. 
+Another way to solve this is a topological sort, to determine the order of cell calculation, and recursion would not be necesary. Any CELL tokens encountered could have their value determined immediatly.
 
 ## Evaluating postfix expressions
 
