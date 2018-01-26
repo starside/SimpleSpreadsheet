@@ -106,7 +106,7 @@ res = re.match(scanner, input)
 
 ## Evaluating the spreadsheet
 
-Internally the program operates recusively.  A method in Sheet called evalCell does the actual evaluation of a cell.  If it encounters a cell reference, like b2, it will recursively evaluate cell b2.  Cells are marked with a cell state.  The reason is if evalCell encounters a cell that has not finished calculating its value, it means a circular definition exists.  This results in an error.
+Internally the program operates recusively.  A method in Sheet called evalCell does the actual evaluation of a cell.  If it encounters a cell reference, like b2, it will recursively evaluate cell b2.  Cells are marked with a cell state.  The reason is if evalCell encounters a cell that has not finished calculating its value, it means a circular definition exists.  This results in an error.  There is a recursion limit in python, and the code detects any attempt exceed the recursion limit, returning an #ERR value in the cell.
 
 For example, the input:
 
@@ -122,7 +122,17 @@ will result in
 
 Cells also record their final numeric value, so if a cell is referenced multiple times it does not need to recompute the result.
 
-Another way to solve this is a topological sort, to determine the order of cell calculation.  However I chose recursive because I felt like it was more idiot proof in the time limits.
+Another way to solve this is a topological sort, to determine the order of cell calculation.  However I chose recursive because of the simplicity.  The sort would mean when a CELL token is encountered, its value can directly be substitued in to the evaluation. 
+
+## Evaluating postfix expressions
+
+This setion assumes knowledge of the common algorithms for evaluating postfix notation, I do not do a complete tutorial. There are two ways to evaluate a postfix expression (see Wikipedia for the two different algorithms).  evalCell uses left to right, meaning it encounters the operands before the operator.  This means I only need to recursively evaluate CELL tokens when they are first encountered in the token stream, and not when they are popped off the stack due to an operator.
+
+It is also possible to use a right to left algorithm, and suggests a way to make evalCell non-recursive.  When an unevaluated cell token is encountered, remove it from the input token stream, and push the contents of its cell to the front of the stream.  For example if evaluating the expression `1 x +` and `x = 1 2 *`, then when x is read from the toke stream, just push `1 2 *` to get:
+
+    `1 1 2 *`
+    
+Evaluation will proceed as expected.  Difficulties arise in preventing infintite loops, which is easy enough to fix.  Storing values of already computed cells is less easy to fix, and I have not implemented it.  The recursive solution is more efficient in the sense that it does not need to compute the value of a cell more than once, but it does have recursion limits and overhead.
 
 I include a sample input.csv.
 
