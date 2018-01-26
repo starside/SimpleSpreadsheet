@@ -17,15 +17,16 @@ class CellState(Enum):
 	FINISHED = 3
 
 # Some utility functions
-def doOp(op, x, y):
+def doOp(opt, x, y):
+	op = opt.value
 	if op == "+":
-		return x.value + y.value
+		return Token(x.value + y.value, TokenKind.NUMBER)
 	if op == "-":
-		return x.value - y.value
+		return Token(x.value - y.value, TokenKind.NUMBER)
 	if op == "*":
-		return x.value * y.value
+		return Token(x.value * y.value, TokenKind.NUMBER)
 	if op == "/":
-		return x.value / y.value
+		return Token(x.value / y.value, TokenKind.NUMBER)
 
 def stringToToken(input):
 	""" Takes a string with stripped whitespace and
@@ -75,7 +76,7 @@ def tokenizeString(input):
 # Classes
 class Cell:
 	def __init__(self, text):
-		self.stack = tokenizeString(text)
+		self.tokens = tokenizeString(text)
 		self.state = CellState.UNEVAL
 		self.finalvalue = None
 
@@ -133,20 +134,23 @@ class Sheet:
 			return cell.cellError()
 		cell.state = CellState.STARTED # Set cell state to started
 
-		tokens = cell.stack
-		tokens = tokens[::-1]
-		stack = []
+		# This code is the postfix evaluation algorithm.
+		tokens = cell.tokens # Get tokenized form of cell
+		tokens = tokens[::-1] # Reverse tokens
+		stack = [] # Stack for the postfix evaluation
 		while len(tokens) > 0:
 			first = tokens.pop()
 			if first.kind == TokenKind.OPERATION:
-				try:
+				try: # It is a binary operation, so pop off two operands
 					left = stack.pop()
 					right = stack.pop()
 				except IndexError:
 					return cell.cellError()
+				# Propogate errors
 				if left.kind == TokenKind.ERROR or right.kind == TokenKind.ERROR:
 					return cell.cellError()
-				stack.append(Token(doOp(first.value, right, left), TokenKind.NUMBER) )
+				# All inputs valid
+				stack.append(doOp(first, right, left) )
 			elif first.kind == TokenKind.NUMBER:
 				stack.append(first)
 			elif first.kind == TokenKind.CELL:
