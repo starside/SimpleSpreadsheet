@@ -44,7 +44,7 @@ allowed.  To get negative numbers, use an expression like "0 7 -"
 
 # Running tests
 
-I included some unit tests the ensure certain specifications are met.  I do not aim for 100% code coverage, instead I check bounds, important error state and basic operations are correct.  Simple run
+I included some unit tests the ensure certain specifications are met.  I do not aim for 100% code coverage, instead I check bounds, important error state and basic operations are correct.  Simply run
 
 ```
 python test.py
@@ -56,7 +56,7 @@ This section describes how the code works. Reference spreadsheet_improved.py to 
 
 ## Tokenizer
 
-I wrote a very simple tokenizer, that converts a string to a token.  Internally a token is a class with two fields, value and kind.  Value is the value of the token, and kind is the type of token.
+I wrote a very simple tokenizer, that converts a string to a token.  The tokenizer's job is to recognize numbers, operators, and references to cells.  Internally a token is a class with two fields, value and kind.  Value is the value of the token, and kind is the type of token.
 
 ```python
     class TokenKind(Enum):
@@ -77,9 +77,9 @@ I wrote a very simple tokenizer, that converts a string to a token.  Internally 
 		    return str(self.value)
 ```
             
-As can be seen from the code above, the kind field is specified by an enumeration from the class TokenKind.  NUMBER and OPERATION describe a number or an arithmetic operation.  CELL means a cell reference in {LETTER}{NUMBER} format, and ERROR is an invalid token.  The heart of the tokenizer is a function called stringToToken, which when given a string returns a single token.
+The `kind` field is specified by an enumeration from the class `TokenKind`.  `NUMBER` and `OPERATION` describe a number or an arithmetic operation.  `CELL` identifies a token as cell reference in {LETTER}{NUMBER} format, and `ERROR` is an invalid token.  The heart of the tokenizer is a function called `stringToToken`, which when given a string returns a single token.
 
-stringToToken classifies tokens using a finite state machine.  Python's regular expression engine is a state machine, and well suited to tokenizing string.  The regular expression that does the heavy lifting is 
+`stringToToken` classifies tokens using a finite state machine.  Python's regular expression engine is a state machine, and well suited to tokenizing strings.  The regular expression that does the heavy lifting is 
 
 ```python
 scanner = re.compile(r'''
@@ -114,7 +114,9 @@ res = re.match(scanner, input)
 
 ## Evaluating the spreadsheet
 
-Internally the program operates recusively.  A method in Sheet called evalCell does the actual evaluation of a cell.  If it encounters a cell reference, like b2, it will recursively evaluate cell b2.  Cells are marked with a cell state.  The reason is if evalCell encounters a cell that has not finished calculating its value, it means a circular definition exists.  This results in an error.  
+Internally the program operates recusively.  A method in `Sheet` called `evalCell` does the actual evaluation of a cell.  If it encounters a cell reference in an expression such as `1 b2 +`, evalCell will recursively cell b2.  In other words, evaluation of expressions is depth first.  
+
+Cells are marked with a cell state that marks its stage of evaluation.  If evalCell encounters a cell that has begun evaluation but not finished, it means a circular definition exists.  This is the same procedure as marking cells in a depth first search to avoid going in circles.  Cycles are detected, and result in a cell being evaluated to #ERR.  
 
 For example, an input with a loop:
 
@@ -128,15 +130,17 @@ will result in
     #ERR, #ERR
     2.0, 1.0
 
-Cells also record their final numeric value, so if a cell is referenced multiple times it does not need to recompute the result. There is a recursion limit in python, and the code detects any attempt exceed the recursion limit, returning an #ERR value in the cell.
+Cells also record their final numeric value, so if a cell is referenced multiple times it does not need to recompute the result. 
 
-Another way to solve this is a topological sort, to determine the order of cell calculation, and recursion would not be necesary. Any CELL tokens encountered could have their value determined immediatly.
+There is a recursion limit in python, and the code detects any attempt exceed the recursion limit, returning an #ERR value in the cell.
+
+Another way to solve this is a topological sort, to determine the order of cell calculation, and recursion would not be necesary. Any CELL tokens encountered could have their value determined immediatly, because topological sort would insure all its dependencies are calculated.
 
 ## Evaluating postfix expressions
 
 This setion assumes knowledge of the common algorithms for evaluating postfix notation, I do not do a complete tutorial. There are two ways to evaluate a postfix expression (see Wikipedia for the two different algorithms).  evalCell uses left to right, meaning it encounters the operands before the operator.  This means I only need to recursively evaluate CELL tokens when they are first encountered in the token stream, and not when they are popped off the stack due to an operator.
 
-It is also possible to use a right to left algorithm, and suggests a way to make evalCell non-recursive.  When an unevaluated cell token is encountered, remove it from the input token stream, and push the contents of its cell to the front of the stream.  For example if evaluating the expression `1 x +` and `x = 1 2 *`, then when x is read from the toke stream, just push `1 2 *` to get:
+It is also possible to use a right to left algorithm, and suggests a way to make evalCell non-recursive.  When an unevaluated cell token is encountered, remove it from the input token stream, and push the contents of its cell to the front of the stream.  For example if evaluating the expression `1 x +` and `x = 1 2 *`, then when x is read from the token stream, just push `1 2 *` to the front of token stream, resulting in:
 
     `1 1 2 *`
     
