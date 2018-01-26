@@ -2,30 +2,38 @@
 
 This is a command line spreadsheet evaluator that uses postfix notation.  It was originally a homework assignment for a company interview, and I think it is a cute little problem, so I am posting it online with a breakdown of the code.  Cells accept postfix notation, so instead of writing 2 + 2, you should write 2 2 +.
 
-Cells can be referenced in standard spreadsheet form, using a comination of a letter and a number.  For example, b7 would be interpreted as column 2, row 7.  In this simple implementation, columns higher than "z" (or 26) cannot be referenced.
+Note that there was no request, explicit or implied to keep this problem confidential.  However I will keep the issuing company anonymous.
 
-Joshua Kelly
-inst.zombie@gmail.com
-(303) 974-8156
+# Original Problem Statement
 
+The original problem statement is paraphrased as follows:
+Write a program that evaluates a CSV (Comma seperated value) file as a spreadsheet, with the following requirements:
+1. Cells may be postfix expressions
+2. Tokens in cells are seperated by whitespace
+3. The four basic arithmetic operations, + - * /, are allowed
+4. Cells are referred to in {LETTER}{NUMBER} notation.  For example, A4 refers to colum 1, row 4.  In my implementation, columns are not case sensitive. Cells have a default value of 0, if they exist in the csv.
+
+# Running the Code
 To invoke the program, run (using python 3):
 
-python spreadsheet_working.py
+    python spreadsheet_improved.py input.csv
+    
+The above command will output the results to stdout.  Optionally output can be written to a file using:
 
-For input, it looks for a file called input1.csv.  I chose this over
-command line arguments due to simplicity of implementation.
+    python spreadsheet_improved.py input.csv -o output.csv
 
-The program will write output.csv upon completion.
+A sample input file could be:
 
-A sample file (from the assignment) could be:
+    c3 b1 +, 3 c1 *, 3, +
+    a1 1 +, 1 8 /, 2 3 -, sadf
+    12, b2, 45, d3, , e3 1 *
+    
+With an expected output of 
 
->
->b1 b2 +,2 b2 3 * -,3,+
->a1 ,5, ,7 2 /
->c2 3 * ,1 2 , ,5 1 2 + 4 * + 3 -
+    54.0, 9.0, 3.0, #ERR
+    55.0, 0.125, -1.0, #ERR
+    12.0, 0.125, 45.0, #ERR, 0, 0.0
 
-Unlike the assignment, I inserted a blank line.  Blank lines evaluate to 
-a single cell with value 0.
 
 I constrain the input to 26 columns, as I restrict column references from a to z,
 and do not allow compund addressing.  Columns are not case sensitive.
