@@ -44,7 +44,7 @@ allowed.  To get negative numbers, use an expression like "0 7 -"
 
 # Breaking down the code
 
-This section describes how the code works.
+This section describes how the code works. Reference spreadsheet_improved.py to follow this section.
 
 ## Tokenizer
 
@@ -104,30 +104,25 @@ res = re.match(scanner, input)
 	return Token(None, TokenKind.ERROR)
 ```
 
-Internally the program operates recusively.  evalCell does the actual evaluation
-of a cell.  If it encounters a cell reference, like b2, it will recursively 
-evaluate cell b2.  Cells are marked with a cell state.  The reason is if
-evalCell encounters a cell that has not finished calculating its value, it
-means a circular definition exists.  This results in an error.
+## Evaluating the spreadsheet
+
+Internally the program operates recusively.  A method in Sheet called evalCell does the actual evaluation of a cell.  If it encounters a cell reference, like b2, it will recursively evaluate cell b2.  Cells are marked with a cell state.  The reason is if evalCell encounters a cell that has not finished calculating its value, it means a circular definition exists.  This results in an error.
 
 For example, the input:
 
 input.csv:
->b1,a1
->b2 1 +,1
 
-will return:
+    b1,a1
+    b2 1 +,1
+    
+will result in
 
-output.csv:
->#ERR, #ERR
->2.0, 1.0
+    #ERR, #ERR
+    2.0, 1.0
 
-Cells also record their final numeric value, so if a cell is referenced multiple
-times it does not need to recomute the result.
+Cells also record their final numeric value, so if a cell is referenced multiple times it does not need to recompute the result.
 
-Another way to solve this is a topological sort, to determine the order of cell
-calculation.  However I chose recursive because I felt like it was more idiot
-proof in the time limits.
+Another way to solve this is a topological sort, to determine the order of cell calculation.  However I chose recursive because I felt like it was more idiot proof in the time limits.
 
 I include a sample input.csv.
 
