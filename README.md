@@ -42,6 +42,14 @@ Floating point and positive integers are valid inputs as numbers.  Ints are
 internally converted to float for all operations.  Negative numbers are not
 allowed.  To get negative numbers, use an expression like "0 7 -"
 
+# Running tests
+
+I included some unit tests the ensure certain specifications are met.  I do not aim for 100% code coverage, instead I check bounds, important error state and basic operations are correct.  Simple run
+
+```
+python test.py
+```
+
 # Breaking down the code
 
 This section describes how the code works. Reference spreadsheet_improved.py to follow this section.
