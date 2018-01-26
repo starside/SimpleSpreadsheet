@@ -140,7 +140,9 @@ It is also possible to use a right to left algorithm, and suggests a way to make
 
     `1 1 2 *`
     
-Evaluation will proceed as expected.  Difficulties arise in preventing infintite loops, which is easy enough to fix.  Storing values of already computed cells is less easy to fix, and I have not implemented it.  The recursive solution is more efficient in the sense that it does not need to compute the value of a cell more than once, but it does have recursion limits and overhead.
+Evaluation will proceed as expected.  Difficulties arise in preventing infintite loops, which is easy enough to fix.  Storing values of already computed cells is less easy to fix, and I have not implemented it.  
+
+# Platforms
 
 I include a sample input.csv.
 
