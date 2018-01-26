@@ -38,7 +38,7 @@ class TestTokenizer(unittest.TestCase):
 		self.assertTrue(output.getvalue() == result)
 
 	def test_recursion_limit(self):
-		""" Ensure that exceeding max recursion does not break the program """
+		"""Ensure that exceeding max recursion does not break the program """
 		data = []
 		limit = sys.getrecursionlimit() + 5
 		for i in range(limit):
