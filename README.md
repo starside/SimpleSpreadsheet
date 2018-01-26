@@ -42,6 +42,89 @@ Floating point and positive integers are valid inputs as numbers.  Ints are
 internally converted to float for all operations.  Negative numbers are not
 allowed.  To get negative numbers, use an expression like "0 7 -"
 
+# Breaking down the code
+
+This section describes how the code works.
+
+## Tokenizer
+
+I wrote a very simple tokenizer, that converts a string to a token.  Internally a token is a class with two fields, value and kind.  Value is the value of the token, and kind is the type of token.
+
+    class TokenKind(Enum):
+	    NUMBER = 1
+	    CELL = 2
+	    OPERATION = 3
+	    ERROR = 4
+    
+    class Token:
+	    def __init__(self, value, kind):
+		    self.value = value
+		    self.kind = kind
+
+	    def toString(self):
+		    """ Quick function to convert token to printable string """
+		    if self.kind == TokenKind.ERROR:
+		    	return "#ERR"
+		    return str(self.value)
+            
+As can be seen from the code above, the kind field is specified by an enumeration from the class TokenKind.  NUMBER and OPERATION describe a number or an arithmetic operation.  CELL means a cell reference in {LETTER}{NUMBER} format, and ERROR is an invalid token.  The heart of the tokenizer is a function called stringToToken, which when given a string returns a single token.
+
+stringToToken classifies tokens using a finite state machine.  Python's regular expression engine is a state machine, and well suited to tokenizing string.  The regular expression that does the heavy lifting is 
+
+    def stringToToken(input):
+		""" Takes a string with stripped whitespace and
+			returns a token. """
+		# Empty tokens should not occur
+		if len(input) == 0:
+			return Token(None, TokenKind.ERROR)
+		# Create regex based state machine to tokenize
+		scanner = re.compile(r'''
+			(^([A-Za-z])([0-9]+)$) |# Match a cell
+			(^[+*/\-]$)	|			# Match an op
+			(^[0-9]+[.]*[0-9]*$)	# Match a number
+		''', re.VERBOSE)
+		# Match regex to input string
+		res = re.match(scanner, input)
+		# Discover the token type
+		if res is not None: # Found a valid token
+			cell, col, row, op, num = res.groups()
+			if cell: # A cell reference, ie A7
+				rownum = int(row)
+				# Is positive and zero?
+				if rownum < 1:
+					return Token(None, TokenKind.ERROR)
+				colnum = ord(col.lower()) - ord('a') # Convert column letter to number
+				return Token((colnum, rownum - 1), TokenKind.CELL)
+			elif op:
+				return Token(input, TokenKind.OPERATION)
+			elif num:
+				number = float(input) # Convert all #s to floating point
+				return Token(number, TokenKind.NUMBER)
+		# Could not convert, return error
+		return Token(None, TokenKind.ERROR)
+    
+The above regex matches either a cell reference, operation or a nuber, and returns the result as a match with five groups.  By inspecting the value of these groups, I determine the type of token.  If no match is found, and error token is returned.  The code below performs this calculation:
+
+    # Match regex to input string
+	res = re.match(scanner, input)
+	# Discover the token type
+	if res is not None: # Found a valid token
+		cell, col, row, op, num = res.groups()
+		if cell: # A cell reference, ie A7
+			rownum = int(row)
+			# Is positive and zero?
+			if rownum < 1:
+				return Token(None, TokenKind.ERROR)
+			colnum = ord(col.lower()) - ord('a') # Convert column letter to number
+			return Token((colnum, rownum - 1), TokenKind.CELL)
+		elif op:
+			return Token(input, TokenKind.OPERATION)
+		elif num:
+			number = float(input) # Convert all #s to floating point
+			return Token(number, TokenKind.NUMBER)
+	# Could not convert, return error
+	return Token(None, TokenKind.ERROR)
+
 Internally the program operates recusively.  evalCell does the actual evaluation
 of a cell.  If it encounters a cell reference, like b2, it will recursively 
 evaluate cell b2.  Cells are marked with a cell state.  The reason is if
