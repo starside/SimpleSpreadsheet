@@ -1,12 +1,9 @@
 # Simple Spreadsheet
 
-This is a command line spreadsheet evaluator that uses postfix notation.  It was originally a homework assignment for a company interview, and I think it is a cute little problem, so I am posting it online with a breakdown of the code.  Cells accept postfix notation, so instead of writing 2 + 2, you should write 2 2 +.
-
-Note that there was no request, explicit or implied to keep this problem confidential.  However I will keep the issuing company anonymous.
+This is a command line spreadsheet evaluator that uses postfix notation.  Cells accept postfix notation, so instead of writing 2 + 2, you should write 2 2 +.
 
 # Original Problem Statement
 
-The original problem statement is paraphrased as follows:
 Write a program that evaluates a CSV (Comma seperated value) file as a spreadsheet, with the following requirements:
 1. Cells may be postfix expressions
 2. Tokens in cells are seperated by whitespace
